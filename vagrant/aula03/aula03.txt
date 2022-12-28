@@ -1,0 +1,1 @@
+Foi uma aula teórica sobre conexção com chave pública e privada na VM.

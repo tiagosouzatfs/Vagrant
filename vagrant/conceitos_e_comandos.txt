@@ -1,0 +1,72 @@
+https://www.vagrantup.com/docs -> documentação
+
+https://app.vagrantup.com/boxes/search -> box para download
+
+Auxílio de como alterar parâmetros da VM ->
+https://github.com/spbgovbr/sei-vagrant/blob/master/Vagrantfile
+
+vagrant init imagem/nome_do_box -> inicializar o vagrant com um box (box é uma imagem de uma máquina virtual)
+Esse comando acima, é quando vc não cria o Vagrantfile e ele cria automático
+
+vagrant up -> subir a máquina virtual com o box escolhido
+
+vagrant status -> verificar se existe algum processo vagrant em andamento
+
+vagrant ssh-config -> parâmetros de conexão ssh
+
+vagrant ssh -> Ele cria um usuário vagrant e uma cheve privada para acesso a máquina virtual sem senha via ssh
+
+ssh -p 2222 vagrant@127.0.0.1 -> Por padrão o vagrant abstrai todo esse comando, com apenas esse comando acima
+(a senha padrão do ssh acima é "vagrant")
+
+vagrant halt -> para uma VM
+
+* Qualquer alteração que tiver que ser feita no Vagrantfile, deverá ser parada a máquina (vagrant halt) e
+iniciada novamente (vagrant up). Porém, há também o comando para isso -> vagrant reload
+
+vagrant destroy -f -> apagar as configurações e a VM mas o box e o Vagrantfile não são apagados
+
+* O conceito de "private_network" no vagrant é apenas a VM criada e o host que criou a VM, se quiser
+que a VM participe de uma rede que é a mesma do host, deve se usar o conceito de "public_network".
+
+* Dentro de cada VM criada, há um diretório "/vagrant" que é um diretório compartilhado com o diretório
+de onde o Vagrantfile foi criado, logo, se precisar tranferir arquivos da VM para o pc host, é só usar
+esse diretório como forma de compartilhamento.
+
+ssh-keygen -t rsa -> comando usado no terminal linux para gerar um par de chaves assimétricas (pública e
+privada), a pública vc copia e coloca no final do arquivo ".ssh/authorized_keys", já a privada vc deixa
+onde vc quiser mas por convenção coloca na mesma pasta do Vagrantfile. 
+
+ssh -i arquivo_chave_privada vagrant@ip_publico -> comando para se conectar a VM depois de colocar o 
+adaptador de rede em "public_network".
+
+vagrant validate -> validar as configurações escritas no arquivo Vagrantfile
+
+vagrant list-commands -> lista de todos os comandos vagrant
+
+vagrant provision -> recurso que utiliza alguma ferramenta para um fim dentro da VM, como por exemplo
+o "shell" para executar um comando para dentro da VM, um apt update, por exemplo. No vagrant up ele lê 
+todo o Vagrantfile mas tem que executar o vagrant provision, pois o vagrant  provision executa apenas as 
+linhas de comando que contém o provision.
+
+* Vc pode criar outros compartilhamentos de pastas entre as VM's do vagrant e o host, não só o "/vagrant".
+Olhar a documentação para isso: synced folder
+
+vagrant global-status -> este comando exibe a situação atual de todos os ambientes vagrant que funcionam na sua máquina com o ID.
+
+vagrant destroy -f ID_da_máquina -> apagar as configurações e a VM mas o box e o Vagrantfile não são apagados de uma máquina específica.
+
+vagrant global-status -- prune -> este comando apaga todos os ambientes vagrant que não estão em funcionamento na sua máquina.
+
+* Os comandos no vagrant já são executados como sudo.
+
+vagrant box list -> lista todos os boxes que tem na máquina
+
+vagrant box remove nome_do_box -> apaga os box que vc quiser (se apagar algum que estiver em uso pode dar merda)
+
+
+
+
+
+
+

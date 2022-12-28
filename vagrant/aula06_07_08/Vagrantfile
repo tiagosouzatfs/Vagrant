@@ -1,0 +1,100 @@
+$script_mysql = <<-SCRIPT
+    apt-get update && \
+    apt-get install -y mysql-server-5.7 && \
+    mysql -e "create user 'phpuser'@'%' identified by 'pass';"
+SCRIPT
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "ubuntu/bionic64"
+
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = 512
+        vb.cpus = 1
+    end
+
+    #comentar o mysql pq agora vamos usar o mysqlserver
+    #config.vm.define "mysql" do |mysql| # cada "define" é uma máquina nova
+        #mysql.vm.network "public_network", ip: "192.168.1.60" # cuidado ao escolher o ip para não dar conflito
+       
+        #mysql.vm.provision "shell",
+            #inline: "cat /configs/id_bionic.pub >> .ssh/authorized_keys" #automatizando a copia da chave pública
+
+        #mysql.vm.provision "shell", inline: $script_mysql
+        #mysql.vm.provision "shell",
+            #inline: "cat /configs/mysqld.cnf > /etc/mysql/mysql.conf.d/mysqld.cnf" # comando para substituir um arquivo usando o shell
+        #mysql.vm.provision "shell",
+            #inline: "service mysql restart"
+
+        #mysql.vm.synced_folder "./configs", "/configs"    
+        #mysql.vm.synced_folder ".", "/vagrant", disabled: true
+    #end
+
+    config.vm.define "phpweb" do |phpweb|
+
+        #Se vc quiser vc pode usar o box que quiser para poder rodar sua máquina
+        #se não quiser, pode usar o que foi declarado mais acima abaixo da linha
+        #declarada mais a cima, embaixo da linha que declarou o uso do Vagrant.
+
+        #config.vm.box = "centos/7"
+
+        phpweb.vm.network "forwarded_port", guest:8888, host:8888
+        phpweb.vm.network "public_network", ip: "192.168.1.61"
+
+        phpweb.vm.provider "virtualbox" do |vb|
+            vb.memory = 1024
+            vb.cpus = 2
+            vb.name = "ubuntu_bionic_php7"
+        end
+
+        phpweb.vm.provision "shell",
+            inline: "apt-get update && apt-get install -y puppet"
+        
+        #vamos criar um provision para integrar o vagrant com o puppet e já passar
+        #o caminho de configuração
+        phpweb.vm.provision "puppet" do |puppet|
+            puppet.manifests_path = "./configs/manifests_puppet"
+            puppet.manifest_file = "phpweb.pp"
+        end
+
+    end
+
+    config.vm.define "mysqlserver" do |mysqlserver|
+        mysqlserver.vm.network "public_network", ip: "192.168.1.62"
+
+        mysqlserver.vm.provision "shell",
+            inline: "cat /vagrant/configs/id_bionic.pub >> .ssh/authorized_keys" 
+    end
+
+    config.vm.define "ansible" do |ansible|
+        ansible.vm.network "public_network", ip: "192.168.1.63"
+
+        ansible.vm.provision "shell",
+            inline: "cp /vagrant/id_bionic /home/vagrant && \
+                    chmod 600 /home/vagrant/id_bionic && \
+                    chown vagrant:vagrant /home/vagrant/id_bionic"
+
+        ansible.vm.provision "shell",
+        inline: "apt-get update && apt-get install software-properties-common -y && \
+                apt-add-repository --yes --update ppa:ansible/ansible && \
+                apt-get install ansible -y"
+        ansible.vm.provision "shell",
+            inline: "ansible-playbook -i /vagrant/configs/ansible/hosts \
+                /vagrant/configs/ansible/playbook.yml"
+    end
+
+    #use o vagrant com o ubuntu e docker pcomo alternativa ao docker-desktop
+    config.vm.define "dockerhost" do |dockerhost|
+
+        dockerhost.vm.network "public_network"
+
+        dockerhost.vm.provider "virtualbox" do |vb|
+            vb.memory = 1024
+            vb.cpus = 2
+            vb.name = "ubuntu_dockerhost"
+        end
+
+        dockerhost.vm.provision "shell",
+            inline: "apt-get update && apt-get install -y docker.io"
+    end
+
+end
